@@ -12,7 +12,7 @@ import (
 	"github.com/wakka-2/Namless/backend/pkg/types"
 )
 
-func TestSearch_Create(t *testing.T) {
+func Test_Create(t *testing.T) {
 	repo, err := buildRepo(true)
 	assert.NoError(t, err)
 
@@ -21,7 +21,7 @@ func TestSearch_Create(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	Import := models.Import{
+	Import := models.Data{
 		ID: "BBB171C4-00E8-4B0F-97EB-2F3EC3394A87",
 	}
 
@@ -30,7 +30,7 @@ func TestSearch_Create(t *testing.T) {
 	assert.Equal(t, "BBB171C4-00E8-4B0F-97EB-2F3EC3394A87", got.ID)
 }
 
-func TestSearch_Update(t *testing.T) {
+func Test_Update(t *testing.T) {
 	repo, err := buildRepo(false)
 	assert.NoError(t, err)
 
@@ -39,27 +39,23 @@ func TestSearch_Update(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	Import := models.Import{
-		ID:     "AAA-00E8-4B0F-97EB-2F3EC3394A87",
-		Status: models.StatusMonitored,
+	Import := models.Data{
+		ID: "AAA-00E8-4B0F-97EB-2F3EC3394A87",
 	}
 
 	created, err := repo.Create(context.TODO(), Import)
 	assert.NoError(t, err)
 	assert.Equal(t, "AAA-00E8-4B0F-97EB-2F3EC3394A87", created.ID)
-	assert.Equal(t, models.StatusMonitored, created.Status)
 
-	created.Status = models.StatusNotMonitored
 	err = repo.Update(context.TODO(), created)
 	assert.NoError(t, err)
 
 	updated, err := repo.ByID(context.TODO(), "AAA-00E8-4B0F-97EB-2F3EC3394A87")
 	assert.NoError(t, err)
 	assert.Equal(t, "AAA-00E8-4B0F-97EB-2F3EC3394A87", updated.ID)
-	assert.Equal(t, models.StatusNotMonitored, updated.Status)
 }
 
-func TestSearch_Delete(t *testing.T) {
+func Test_Delete(t *testing.T) {
 	repo, err := buildRepo(true)
 	assert.NoError(t, err)
 
@@ -68,7 +64,7 @@ func TestSearch_Delete(t *testing.T) {
 		assert.NoError(t, err)
 	}()
 
-	Import := models.Import{
+	Import := models.Data{
 		ID: "BBB-00E8-4B0F-97EB-2F3EC3394A87",
 	}
 
@@ -87,8 +83,7 @@ func TestSearch_Delete(t *testing.T) {
 	assert.Error(t, err)
 }
 
-//nolint:funlen
-func TestSearch_DeleteOld(t *testing.T) {
+func Test_DeleteOld(t *testing.T) {
 	repo, err := buildRepo(true)
 	assert.NoError(t, err)
 
@@ -99,25 +94,21 @@ func TestSearch_DeleteOld(t *testing.T) {
 
 	creationTime := time.Date(2024, 4, 1, 1, 1, 1, 1, time.UTC)
 
-	Imports := []models.Import{
+	Imports := []models.Data{
 		{
 			ID:        "1BB-00E8-4B0F-97EB-2F3EC3394A87",
-			ProjectID: "1",
 			CreatedAt: creationTime,
 		},
 		{
 			ID:        "2BB-00E8-4B0F-97EB-2F3EC3394A87",
-			ProjectID: "2",
 			CreatedAt: creationTime,
 		},
 		{
 			ID:        "3BB-00E8-4B0F-97EB-2F3EC3394A87",
-			ProjectID: "3",
 			CreatedAt: creationTime,
 		},
 		{
 			ID:        "4BB-00E8-4B0F-97EB-2F3EC3394A87",
-			ProjectID: "4",
 			CreatedAt: creationTime.Add(2 * time.Hour),
 		},
 	}
@@ -167,7 +158,7 @@ func buildRepo(silent bool) (*Store, error) {
 	}
 
 	return NewTruncate(
-		"user=postgres password=postgres dbname=test_ratt_import host=127.0.0.1 port=5432 sslmode=disable",
+		"user=postgres password=postgres dbname=test_nameles host=127.0.0.1 port=5432 sslmode=disable",
 		silent,
 	)
 }

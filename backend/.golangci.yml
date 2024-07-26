@@ -1,0 +1,96 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# More info on config here: https://github.com/golangci/golangci-lint#config-file
+run:
+  issues-exit-code: 1
+  tests: true
+  build-tags:
+    - codeanalysis
+
+output:
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  dupl:
+    threshold: 100
+  goconst:
+    min-len:         2
+    min-occurrences: 2
+  depguard:
+    rules:
+      main:
+        files:
+          - $all
+        allow:
+          - $gostd
+          - github.com/wakka-2/Namless/backend
+          - github.com/stretchr/testify/assert
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - depguard
+    - dogsled
+    - dupl
+    - dupword
+    - errcheck
+    - errorlint
+    - exportloopref
+    - errname
+    - funlen
+    - gocheckcompilerdirectives
+    - goconst 
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gofmt
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - grouper
+    - ineffassign
+    - lll
+    - megacheck
+    - misspell
+    - nonamedreturns
+    - nakedret
+    - noctx
+    - nolintlint
+    - prealloc
+    - revive
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varnamelen
+    - whitespace
+    - wrapcheck
+    - wsl 
+issues:
+  exclude-use-default: false
+  exclude:
+    # _ instead of err checks
+    - G104
+    # for "public interface + private struct implementation" cases only!
+    - exported func * returns unexported type *, which can be annoying to use
+    # can be removed in the development phase
+    # - (comment on exported (method|function|type|const)|should have( a package)? comment|comment should be of the form)
+    # not for the active development - can be removed in the stable phase
+    - should have a package comment, unless it's in another file for this package
+    - don't use an underscore in package name
+    # errcheck: Almost all programs ignore errors on these functions and in most cases it's ok
+    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv|.*Rollback). is not checked
+    - should check returned error before deferring
+    - error returned from external package is unwrapped
+    - variable name '*' is too short for the scope of its usage

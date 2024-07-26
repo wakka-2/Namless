@@ -1,5 +1,5 @@
 /*
-Package repository offers objects that can do CRUD operations on the import table.
+Package repository offers objects that can do CRUD operations on the data table.
 */
 package repository
 
@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/wakka-2/Namless/backend/pkg/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -43,9 +44,9 @@ func New(dsn string, silent bool) (*Store, error) {
 		return nil, fmt.Errorf("could not open Import DB: %w", err)
 	}
 
-	err = result.db.AutoMigrate(&models.Import{})
+	err = result.db.AutoMigrate(&models.Data{})
 	if err != nil {
-		return nil, fmt.Errorf("could not auto migrate models.Import: %w", err)
+		return nil, fmt.Errorf("could not auto migrate models.Data: %w", err)
 	}
 
 	return result, nil
@@ -58,7 +59,7 @@ func NewTruncate(dsn string, silent bool) (*Store, error) {
 	result, err := New(dsn, silent)
 
 	if err == nil {
-		success := result.db.Exec("TRUNCATE TABLE imports;")
+		success := result.db.Exec("TRUNCATE TABLE data;")
 		if success.Error != nil {
 			return nil, fmt.Errorf("could not truncate: %w", err)
 		}
@@ -68,11 +69,11 @@ func NewTruncate(dsn string, silent bool) (*Store, error) {
 }
 
 // GetAll returns all import items.
-func (c *Store) GetAll(ctx context.Context) ([]models.Import, error) {
+func (c *Store) GetAll(ctx context.Context) ([]models.Data, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	var result []models.Import
+	var result []models.Data
 
 	err := c.db.WithContext(ctx).Find(&result).Error
 	if err != nil {
@@ -82,14 +83,14 @@ func (c *Store) GetAll(ctx context.Context) ([]models.Import, error) {
 	return result, nil
 }
 
-// Monitored returns all import items with status StatusMonitored, that were not previously deleted.
-func (c *Store) Monitored(ctx context.Context) ([]models.Import, error) {
+// Monitored returns all import items, that were not previously deleted.
+func (c *Store) Monitored(ctx context.Context) ([]models.Data, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	var result []models.Import
+	var result []models.Data
 
-	err := c.db.WithContext(ctx).Where("status = ?", models.StatusMonitored).Find(&result).Error
+	err := c.db.WithContext(ctx).Find(&result).Error
 	if err != nil {
 		return nil, fmt.Errorf("could not get serch items: %w", err)
 	}
@@ -97,10 +98,10 @@ func (c *Store) Monitored(ctx context.Context) ([]models.Import, error) {
 	return result, nil
 }
 
-// Create a new search item.
+// Create a new data item.
 //
 // Sets the CreatedAt and UpdatedAt fields.
-func (c *Store) Create(ctx context.Context, item models.Import) (models.Import, error) {
+func (c *Store) Create(ctx context.Context, item models.Data) (models.Data, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -109,14 +110,14 @@ func (c *Store) Create(ctx context.Context, item models.Import) (models.Import, 
 
 	success := c.db.WithContext(ctx).Create(&item)
 	if success.Error != nil {
-		return models.Import{}, fmt.Errorf("could not create import item: %w", success.Error)
+		return models.Data{}, fmt.Errorf("could not create data item: %w", success.Error)
 	}
 
 	return item, nil
 }
 
-// Update a given search item.
-func (c *Store) Update(ctx context.Context, item models.Import) error {
+// Update a given data item.
+func (c *Store) Update(ctx context.Context, item models.Data) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
@@ -124,7 +125,7 @@ func (c *Store) Update(ctx context.Context, item models.Import) error {
 		return ErrDoesNotExist
 	}
 
-	var result models.Import
+	var result models.Data
 
 	success := c.db.WithContext(ctx).First(&result, "id = ?", item.ID)
 	if success.Error != nil {
@@ -135,29 +136,29 @@ func (c *Store) Update(ctx context.Context, item models.Import) error {
 
 	success = c.db.WithContext(ctx).Save(item)
 	if success.Error != nil {
-		return fmt.Errorf("could not update search item: %w", success.Error)
+		return fmt.Errorf("could not update data item: %w", success.Error)
 	}
 
 	return nil
 }
 
-// ByID returns the search item with a given ID.
-func (c *Store) ByID(ctx context.Context, itemID string) (models.Import, error) {
+// ByID returns the data item with a given ID.
+func (c *Store) ByID(ctx context.Context, itemID string) (models.Data, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 
-	var result models.Import
+	var result models.Data
 
 	success := c.db.WithContext(ctx).First(&result, "id = ?", itemID)
 
 	if success.Error != nil {
-		return models.Import{}, fmt.Errorf("could not find import item with ID %q: %w", itemID, success.Error)
+		return models.Data{}, fmt.Errorf("could not find data item with ID %q: %w", itemID, success.Error)
 	}
 
 	return result, nil
 }
 
-// Delete a given search item.
+// Delete a given data item.
 func (c *Store) Delete(ctx context.Context, importID string) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -166,7 +167,7 @@ func (c *Store) Delete(ctx context.Context, importID string) error {
 		return ErrDoesNotExist
 	}
 
-	var result models.Import
+	var result models.Data
 
 	success := c.db.WithContext(ctx).First(&result, "id = ?", importID)
 	if success.Error != nil {
@@ -175,7 +176,7 @@ func (c *Store) Delete(ctx context.Context, importID string) error {
 
 	success = c.db.WithContext(ctx).Delete(&result)
 	if success.Error != nil {
-		return fmt.Errorf("could not delete import %q: %w", importID, success.Error)
+		return fmt.Errorf("could not delete data item %q: %w", importID, success.Error)
 	}
 
 	return nil
@@ -186,9 +187,9 @@ func (c *Store) DeleteOld(ctx context.Context, startingFrom time.Time) (int64, e
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	success := c.db.WithContext(ctx).Where("created_at < ?", startingFrom).Delete(&models.Import{})
+	success := c.db.WithContext(ctx).Where("created_at < ?", startingFrom).Delete(&models.Data{})
 	if success.Error != nil {
-		return 0, fmt.Errorf("could not delete search items older than %q: %w",
+		return 0, fmt.Errorf("could not delete data items older than %q: %w",
 			startingFrom.Format(time.DateTime), success.Error)
 	}
 
@@ -211,22 +212,4 @@ func (c *Store) Close(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-// ByProjectID returns the search item with a given project ID.
-//
-// Returns an error if a project with the given projectID does not exist.
-func (c *Store) ByProjectID(ctx context.Context, projectID string) (models.Import, error) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-
-	var result models.Import
-
-	success := c.db.WithContext(ctx).Where("project_id = ?", projectID).First(&result)
-
-	if success.Error != nil {
-		return models.Import{}, fmt.Errorf("could not find import item with projectID %q: %w", projectID, success.Error)
-	}
-
-	return result, nil
 }

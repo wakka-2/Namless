@@ -1,3 +1,6 @@
+/*
+Package models offers DB related structures.
+*/
 package models
 
 import (
@@ -6,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Data models a (key, value) data item.
 type Data struct {
 	ID        string `json:"id,omitempty" gorm:"primary_key"`
 	Value     string

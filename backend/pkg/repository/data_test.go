@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wakka-2/Namless/backend/pkg/models"
@@ -81,69 +80,6 @@ func Test_Delete(t *testing.T) {
 
 	found, err = repo.ByID(context.TODO(), created.ID)
 	assert.Error(t, err)
-}
-
-func Test_DeleteOld(t *testing.T) {
-	repo, err := buildRepo(true)
-	assert.NoError(t, err)
-
-	defer func() {
-		err := repo.Close(context.TODO())
-		assert.NoError(t, err)
-	}()
-
-	creationTime := time.Date(2024, 4, 1, 1, 1, 1, 1, time.UTC)
-
-	Imports := []models.Data{
-		{
-			ID:        "1BB-00E8-4B0F-97EB-2F3EC3394A87",
-			CreatedAt: creationTime,
-		},
-		{
-			ID:        "2BB-00E8-4B0F-97EB-2F3EC3394A87",
-			CreatedAt: creationTime,
-		},
-		{
-			ID:        "3BB-00E8-4B0F-97EB-2F3EC3394A87",
-			CreatedAt: creationTime,
-		},
-		{
-			ID:        "4BB-00E8-4B0F-97EB-2F3EC3394A87",
-			CreatedAt: creationTime.Add(2 * time.Hour),
-		},
-	}
-
-	for _, item := range Imports {
-		created, err := repo.Create(context.TODO(), item)
-		assert.NoError(t, err)
-		assert.Equal(t, item.ID, created.ID)
-
-		found, err := repo.ByID(context.TODO(), created.ID)
-		assert.NoError(t, err)
-		assert.Equal(t, created.ID, found.ID)
-
-		found.CreatedAt = item.CreatedAt // create automatically overrides the CreatedAt field
-		err = repo.Update(context.TODO(), found)
-		assert.NoError(t, err)
-	}
-
-	got, err := repo.GetAll(context.TODO())
-	assert.NoError(t, err)
-	assert.Len(t, got, len(Imports))
-
-	for i := range Imports {
-		assert.Equal(t, got[i].ID, Imports[i].ID)
-	}
-
-	deleted, err := repo.DeleteOld(context.TODO(), creationTime.Add(time.Hour))
-	assert.Equal(t, int64(3), deleted)
-	assert.NoError(t, err)
-
-	got, err = repo.GetAll(context.TODO())
-	assert.NoError(t, err)
-	assert.Len(t, got, 1)
-
-	assert.Equal(t, got[0].ID, "4BB-00E8-4B0F-97EB-2F3EC3394A87")
 }
 
 func buildRepo(silent bool) (*Store, error) {

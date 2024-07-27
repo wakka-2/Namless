@@ -14,15 +14,18 @@ import (
 
 // RESTAPI offers handlers.
 type RESTAPI struct {
-	dataService *service.Data
+	dataService     *service.Data
+	locationService *service.Location
 }
 
 // New builds a new REST API.
 func New(
 	dataService *service.Data,
+	locationService *service.Location,
 ) *RESTAPI {
 	return &RESTAPI{
-		dataService: dataService,
+		dataService:     dataService,
+		locationService: locationService,
 	}
 }
 
@@ -30,9 +33,13 @@ func New(
 func (r *RESTAPI) BuildMultiplexer() http.Handler {
 	multiplexer := http.NewServeMux()
 
+	multiplexer.Handle("GET /data/{key}", http.HandlerFunc(r.Request))
 	multiplexer.Handle("POST /data", http.HandlerFunc(r.Create))
 	multiplexer.Handle("PUT /data", http.HandlerFunc(r.Update))
 	multiplexer.Handle("DELETE /data/{key}", http.HandlerFunc(r.Delete))
+	multiplexer.Handle("GET /location/{id}", http.HandlerFunc(r.RequestLocation))
+	multiplexer.Handle("GET /location", http.HandlerFunc(r.RequestAllLocations))
+	multiplexer.Handle("POST /location", http.HandlerFunc(r.CreateLocation))
 
 	return RecoverMiddleware(multiplexer)
 }

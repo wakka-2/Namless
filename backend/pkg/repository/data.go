@@ -83,21 +83,6 @@ func (c *Store) GetAll(ctx context.Context) ([]models.Data, error) {
 	return result, nil
 }
 
-// Monitored returns all import items, that were not previously deleted.
-func (c *Store) Monitored(ctx context.Context) ([]models.Data, error) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-
-	var result []models.Data
-
-	err := c.db.WithContext(ctx).Find(&result).Error
-	if err != nil {
-		return nil, fmt.Errorf("could not get serch items: %w", err)
-	}
-
-	return result, nil
-}
-
 // Create a new data item.
 //
 // Sets the CreatedAt and UpdatedAt fields.
@@ -159,41 +144,29 @@ func (c *Store) ByID(ctx context.Context, itemID string) (models.Data, error) {
 }
 
 // Delete a given data item.
-func (c *Store) Delete(ctx context.Context, importID string) error {
+//
+//nolint:dupls
+func (c *Store) Delete(ctx context.Context, dataID string) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if importID == "" {
+	if dataID == "" {
 		return ErrDoesNotExist
 	}
 
 	var result models.Data
 
-	success := c.db.WithContext(ctx).First(&result, "id = ?", importID)
+	success := c.db.WithContext(ctx).First(&result, "id = ?", dataID)
 	if success.Error != nil {
 		return ErrDoesNotExist
 	}
 
 	success = c.db.WithContext(ctx).Delete(&result)
 	if success.Error != nil {
-		return fmt.Errorf("could not delete data item %q: %w", importID, success.Error)
+		return fmt.Errorf("could not delete data item %q: %w", dataID, success.Error)
 	}
 
 	return nil
-}
-
-// DeleteOld deletes all entries created before a given timestamp.
-func (c *Store) DeleteOld(ctx context.Context, startingFrom time.Time) (int64, error) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
-	success := c.db.WithContext(ctx).Where("created_at < ?", startingFrom).Delete(&models.Data{})
-	if success.Error != nil {
-		return 0, fmt.Errorf("could not delete data items older than %q: %w",
-			startingFrom.Format(time.DateTime), success.Error)
-	}
-
-	return success.RowsAffected, nil
 }
 
 // Close closes the DB connection.

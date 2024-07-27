@@ -49,12 +49,18 @@ func main() {
 
 	database, err := repository.New(cfg.DSN, true)
 	if err != nil {
-		panic("could not build repository")
+		panic("could not build Data repository")
+	}
+
+	locationDB, err := repository.NewLocation(cfg.DSN, true)
+	if err != nil {
+		panic("could not build Location repository")
 	}
 
 	dataService := service.New(ctx, database)
+	locationService := service.NewLocation(ctx, locationDB)
 
-	restAPI := api.New(dataService)
+	restAPI := api.New(dataService, locationService)
 
 	go runServer(restAPI, cfg.ListenAddress)
 

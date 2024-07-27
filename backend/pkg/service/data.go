@@ -58,6 +58,20 @@ func (d *Data) Get(ctx context.Context, key string) (string, error) {
 	return result.Value, nil
 }
 
+// Get the key-value pairs.
+func (d *Data) GetAll(ctx context.Context) ([]models.Data, error) {
+	if d.serverCtx.Err() != nil || ctx.Err() != nil {
+		return nil, types.ErrCancelledContext
+	}
+
+	result, err := d.db.GetAll(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve locations: %w", err)
+	}
+
+	return result, nil
+}
+
 // Update a given key-value pair.
 func (d *Data) Update(ctx context.Context, key string, value string) error {
 	if d.serverCtx.Err() != nil || ctx.Err() != nil {

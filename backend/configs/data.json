@@ -1,0 +1,4 @@
+{
+    "ListedAddress": ":8080",
+    "DSN": "user=postgres password=postgres dbname=test_nameles host=127.0.0.1 port=5432 sslmode=disable"
+}

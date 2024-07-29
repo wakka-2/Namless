@@ -25,7 +25,7 @@ func writeJSON(writer http.ResponseWriter, toBeWritten interface{}, statusCode u
 func write(writer http.ResponseWriter, toBeWritten []byte, statusCode uint) error {
 	writer.Header().Add("Content-Type", "application/json")
 	writer.Header().Set("Content-Length", strconv.Itoa(len(toBeWritten)))
-	writer.WriteHeader(int(statusCode))
+	//writer.WriteHeader(int(statusCode))
 
 	_, err := writer.Write(toBeWritten)
 	if err != nil {

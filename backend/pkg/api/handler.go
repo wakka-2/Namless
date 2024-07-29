@@ -40,8 +40,10 @@ func (r *RESTAPI) BuildMultiplexer() http.Handler {
 	multiplexer.Handle("GET /location/{id}", http.HandlerFunc(r.RequestLocation))
 	multiplexer.Handle("GET /location", http.HandlerFunc(r.RequestAllLocations))
 	multiplexer.Handle("POST /location", http.HandlerFunc(r.CreateLocation))
+	multiplexer.Handle("POST /token", http.HandlerFunc(r.CreateToken))
+	multiplexer.Handle("GET /two/{name}", http.HandlerFunc(r.CreateToken2))
 
-	return RecoverMiddleware(multiplexer)
+	return RecoverMiddleware(EnableCORS(multiplexer))
 }
 
 // Create will create a new data entry.
@@ -68,8 +70,6 @@ func (r *RESTAPI) Create(writer http.ResponseWriter, req *http.Request) {
 		r.handleError(writer, "could not create entry", http.StatusInternalServerError)
 		return
 	}
-
-	writer.WriteHeader(http.StatusCreated)
 }
 
 // Request will retrieve the data entry with a given key.
